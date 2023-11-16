@@ -144,17 +144,27 @@ def main(args):
     import seaborn as sns
     import os
 
-    df = pd.DataFrame({
+    df_train = pd.DataFrame({
         'Epoch': np.arange(len(train_losses)),
         'Train Loss': train_losses,
         'Train Accuracy': train_accuracies,
         'Train Micro F1': train_micro_f1s,
         'Train Macro F1': train_macro_f1s
     })
+    df_val = pd.DataFrame({
+        'Epoch': np.arange(len(val_losses)),
+        'Val Loss': val_losses,
+        'Val Accuracy': val_accuracies,
+        'Val Micro F1': val_micro_f1s,
+        'Val Macro F1': val_macro_f1s
+    })
+
     # 保存指标数据
-    df.to_csv(os.path.join(args['log_dir'], 'training_metrics.csv'), index=False)
+    df_train.to_csv(os.path.join(args['log_dir'], 'training_metrics.csv'), index=False)
+    df_val.to_csv(os.path.join(args['log_dir'], 'validating_metrics.csv'), index=False)
+
     # 转长格式，利于可视化
-    df_melted = df.melt(id_vars=['Epoch'], var_name='Metric', value_name='Value')
+    df_melted = df_train.melt(id_vars=['Epoch'], var_name='Metric', value_name='Value')
 
     sns.set(style="whitegrid")  # 设置样式，可根据需要修改
 
@@ -183,6 +193,16 @@ def main(args):
     test_loss, test_acc, test_micro_f1, test_macro_f1 = evaluate(
         model, g, features, labels, test_mask, loss_fcn
     )
+
+    df_test = pd.DataFrame({
+        'Epoch': np.arange(len(val_losses)),
+        'Train Loss': val_losses,
+        'Train Accuracy': val_accuracies,
+        'Train Micro F1': val_micro_f1s,
+        'Train Macro F1': val_macro_f1s
+    })
+    df_test.to_csv(os.path.join(args['log_dir'], 'test_metrics.csv'), index=False)
+
     print(
         "Test loss {:.4f} | Test Micro f1 {:.4f} | Test Macro f1 {:.4f}".format(
             test_loss.item(), test_micro_f1, test_macro_f1
